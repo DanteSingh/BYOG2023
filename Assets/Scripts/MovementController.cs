@@ -6,28 +6,50 @@ using UnityEngine;
 public class MovementController : MonoBehaviour
 {
     private float horizontal;
-    public float speed = 8f;
-    public float jumpingPower = 16f;
     private bool isFacingRight = true;
 
-    public bool CanMove = false;
-    public bool CanJump = false;
-    public bool CanFlip = false;
+	public bool CanFlip = false;
+	public bool CanMove = false;
+	public float speed = 8f;
+	public bool CanJump = false;
+	public float jumpingPower = 16f;
+    public bool CanTilt = false;
+	public float TiltSpeed = 16f;
+	public bool UseExternalForce = false;
+	public float externalForceMul = 4f;
 
-    [SerializeField] private Rigidbody2D rb;
+	[SerializeField] private Rigidbody2D rb;
     [SerializeField] private Transform groundCheck;
     [SerializeField] private LayerMask groundLayer;
 
-    void Update()
+    Transform m_CameraTrans;
+	Vector2 m_ExternalForce = Vector2.zero;
+	private void Awake()
+	{
+        m_CameraTrans = Camera.main.transform;
+	}
+	void Update()
     {
 		if (CanJump) Jump();
         if(CanFlip) Flip();
+        if(CanTilt) Tilt();
 	}
+
 	private void FixedUpdate()
 	{
+        if (UseExternalForce) ExternalForce();
         if (CanMove) Move();
 	}
 
+	private void ExternalForce()
+	{
+		m_ExternalForce = -m_CameraTrans.up;
+		rb.AddForce(m_ExternalForce * externalForceMul);
+	}
+	private void Tilt()
+	{
+		rb.rotation += Input.GetAxisRaw("Horizontal") * TiltSpeed;
+	}
 	private void Move()
 	{
 		horizontal = Input.GetAxisRaw("Horizontal");
